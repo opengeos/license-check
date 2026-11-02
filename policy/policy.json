@@ -1,0 +1,307 @@
+{
+ "schema": 1,
+ "id": "opengeos/1",
+ "description": "Organizational rules for the declared licence of a published permissive Python or npm package. Not a compatibility solver: it never infers linkage, loading or vendoring. Obligations are a reminder vocabulary, not legal analysis.",
+ "obligations": {
+  "MIT": [
+   "include-license-text",
+   "include-copyright-notice"
+  ],
+  "BSD-2-Clause": [
+   "include-license-text",
+   "include-copyright-notice"
+  ],
+  "BSD-3-Clause": [
+   "include-license-text",
+   "include-copyright-notice"
+  ],
+  "ISC": [
+   "include-license-text",
+   "include-copyright-notice"
+  ],
+  "Apache-2.0": [
+   "include-license-text",
+   "include-notice-file",
+   "state-changes"
+  ],
+  "Zlib": [
+   "include-license-text",
+   "state-changes"
+  ],
+  "0BSD": [],
+  "CC0-1.0": [],
+  "Unlicense": [],
+  "MPL-2.0": [
+   "include-license-text",
+   "source-offer"
+  ],
+  "GPL-1.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-1.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-1.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-1.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-2.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-2.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-2.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-2.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-3.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-3.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-3.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "GPL-3.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.1-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.1-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.1": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-2.1+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-3.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-3.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-3.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "LGPL-3.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-1.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-1.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-1.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-1.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-3.0-only": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-3.0-or-later": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-3.0": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "AGPL-3.0+": [
+   "include-license-text",
+   "include-copyright-notice",
+   "state-changes",
+   "source-offer"
+  ],
+  "Apache-2.0 WITH LLVM-exception": [
+   "include-license-text",
+   "include-notice-file",
+   "state-changes"
+  ]
+ },
+ "default_profile": "permissive-package",
+ "profiles": {
+  "permissive-package": {
+   "description": "Declared licence of a published permissive package. Unlisted ids, LicenseRef-* and unlisted WITH pairs are review.",
+   "classes": {
+    "MIT": "allow",
+    "BSD-2-Clause": "allow",
+    "BSD-3-Clause": "allow",
+    "ISC": "allow",
+    "Apache-2.0": "allow",
+    "Zlib": "allow",
+    "0BSD": "allow",
+    "CC0-1.0": "allow",
+    "Unlicense": "allow",
+    "MPL-2.0": "review",
+    "GPL-1.0-only": "deny",
+    "GPL-1.0-or-later": "deny",
+    "GPL-1.0": "deny",
+    "GPL-1.0+": "deny",
+    "GPL-2.0-only": "deny",
+    "GPL-2.0-or-later": "deny",
+    "GPL-2.0": "deny",
+    "GPL-2.0+": "deny",
+    "GPL-3.0-only": "deny",
+    "GPL-3.0-or-later": "deny",
+    "GPL-3.0": "deny",
+    "GPL-3.0+": "deny",
+    "LGPL-2.0-only": "review",
+    "LGPL-2.0-or-later": "review",
+    "LGPL-2.0": "review",
+    "LGPL-2.0+": "review",
+    "LGPL-2.1-only": "review",
+    "LGPL-2.1-or-later": "review",
+    "LGPL-2.1": "review",
+    "LGPL-2.1+": "review",
+    "LGPL-3.0-only": "review",
+    "LGPL-3.0-or-later": "review",
+    "LGPL-3.0": "review",
+    "LGPL-3.0+": "review",
+    "AGPL-1.0-only": "deny",
+    "AGPL-1.0-or-later": "deny",
+    "AGPL-1.0": "deny",
+    "AGPL-1.0+": "deny",
+    "AGPL-3.0-only": "deny",
+    "AGPL-3.0-or-later": "deny",
+    "AGPL-3.0": "deny",
+    "AGPL-3.0+": "deny",
+    "SSPL-1.0": "deny",
+    "BUSL-1.1": "deny",
+    "CC-BY-NC-2.0": "deny",
+    "CC-BY-ND-2.0": "deny",
+    "CC-BY-NC-ND-2.0": "deny",
+    "CC-BY-NC-SA-2.0": "deny",
+    "CC-BY-NC-2.5": "deny",
+    "CC-BY-ND-2.5": "deny",
+    "CC-BY-NC-ND-2.5": "deny",
+    "CC-BY-NC-SA-2.5": "deny",
+    "CC-BY-NC-3.0": "deny",
+    "CC-BY-ND-3.0": "deny",
+    "CC-BY-NC-ND-3.0": "deny",
+    "CC-BY-NC-SA-3.0": "deny",
+    "CC-BY-NC-4.0": "deny",
+    "CC-BY-ND-4.0": "deny",
+    "CC-BY-NC-ND-4.0": "deny",
+    "CC-BY-NC-SA-4.0": "deny"
+   },
+   "with_pairs": {
+    "Apache-2.0 WITH LLVM-exception": "allow"
+   }
+  }
+ }
+}
