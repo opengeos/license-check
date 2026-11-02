@@ -1,0 +1,50 @@
+# DORMANT PROPOSAL. Rename only after approval, immutable pin replacement and sandbox tests.
+name: Inspect package artifacts
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: opengeos/license-check
+          ref: 9d66e7822651c0281df0b34def203dbfd1ec7f10
+          path: engine
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: baseline
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: olc-package-artifacts
+          path: artifact-input
+      - name: Inspect data with protected baseline
+        env:
+          ENGINE_COMMIT: 9d66e7822651c0281df0b34def203dbfd1ec7f10
+        run: |
+          python3 -I engine/bin/olc-ci --artifacts artifact-input --baseline baseline --candidate candidate --engine-commit "$ENGINE_COMMIT" --report-root inspection-report
+      - name: Safe summary
+        if: always()
+        run: |
+          if test -f inspection-report/summary.md; then
+            cat inspection-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: olc-inspection-report
+          path: inspection-report/
+          if-no-files-found: error
+          retention-days: 7

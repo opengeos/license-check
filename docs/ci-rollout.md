@@ -1,8 +1,9 @@
 # Artifact CI rollout proposal
 
 This is local preparation, not deployed CI. The workflow has a `.yml.proposed` suffix so GitHub
-cannot discover it. `UNPUBLISHED_ENGINE_COMMIT` must be replaced with a reviewed immutable
-40-character commit before enabling it. Never deploy the marker.
+cannot discover it. The engine is pinned to local, unpublished commit
+`9d66e7822651c0281df0b34def203dbfd1ec7f10`. Publication and sandbox execution still require explicit
+approval; this local pin does not make the workflow deployed or runtime-validated.
 
 The useful initial scope is checking actual package archives produced by a separate unprivileged
 build job. That job runs on an ephemeral hosted runner with no secrets or write permissions,
@@ -51,7 +52,7 @@ using the action's same-run runtime access, with no cross-run token supplied.
 
 1. Review code, baseline scope, local synthetic pass/fail/incomplete/review tests and malicious
    path, omission, policy-change and report injection cases.
-2. Commit checker code as revision A. In a later revision B replace both engine markers with A.
+2. Commit checker code as revision A. In revision B both engine references pin A.
    A reusable workflow's `github` context describes its caller, so `github.workflow_sha` must
    never be used as the checker revision. Pin caller reuse to B and engine checkout to A.
 3. Obtain explicit approval before any public push, PR, comment, sandbox repository change or
