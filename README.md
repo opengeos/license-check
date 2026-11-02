@@ -12,8 +12,8 @@ compliant; it says what was checked, on which files, and what could not be check
 
 - It never installs, builds, imports or runs the packages it reads. Archives are streamed in memory
   and never extracted.
-- Only ZIP (wheels, old sdists) and gzip tar (sdists, npm tarballs) are read. Nested archives,
-  WOFF2 fonts and encrypted members are reported as unexamined, not opened.
+- Only ZIP (wheels, old sdists) and gzip tar (sdists, npm tarballs) are read. Nested ZIP and gzip-tar archives are inspected in memory to depth two with shared
+  byte/member budgets; unsupported formats, WOFF2 fonts and encrypted members remain unexamined.
 - Registry access is limited to anonymous HTTPS GETs to `pypi.org`, `files.pythonhosted.org`
   and `registry.npmjs.org`. `olc inspect` itself does no network access.
 - A digest match shows the file is the one the registry lists; it does not verify signatures or
@@ -52,6 +52,7 @@ Fixtures are synthetic and built in memory; network tests use a fake server.
 
 | Limit | Default |
 |---|---|
+| Nested archive depth | 2 |
 | Artifact size | 300 MB |
 | Members per archive | 50 000 |
 | Bytes streamed per member | 512 MiB |

@@ -156,9 +156,9 @@ class ArchiveTests(unittest.TestCase):
             zf.writestr("x.ttf", b"font")
         art = self.w.zip("a.whl", {"pkg/data.zip": inner.getvalue(),
                                    "pkg/renamed.bin": inner.getvalue()})
-        s, rec = read(art["path"])
-        self.assertEqual(self.unexamined(s), {"pkg/data.zip": "nested-archive",
-                                              "pkg/renamed.bin": "nested-archive"})
+        s, rec = read(art["path"], max_nested_depth=0)
+        self.assertEqual(self.unexamined(s), {"pkg/data.zip": "nested-depth-limit",
+                                              "pkg/renamed.bin": "nested-depth-limit"})
         self.assertEqual(rec.members, [])
 
     def test_empty_and_unsupported_archives(self):

@@ -24,8 +24,8 @@ findings; they never confirm or correct anything, and their `review` or `fail` d
 A `fail` from `name-record-match`, `digest-match`, `forbidden-requirement`,
 `required-requirement-missing`, `entry-missing` or `file-missing` rests on content that was read.
 A `pass` is a statement about absence, and holds only within the scope that was examined:
-`coverage` lists every member that was not content (symlinks, devices) or not examined (nested
-archives, limits, encryption, bad paths), and any unexamined member a rule depends on makes that
+`coverage` lists every member that was not content (symlinks, devices) or not examined (unsupported nested
+archives, depth/byte limits, encryption, bad paths), and any unexamined member a rule depends on makes that
 rule `incomplete`. When an archive's member list itself is incomplete, no rule draws an
 absence-based conclusion (`file-missing`, `pattern-not-found`).
 

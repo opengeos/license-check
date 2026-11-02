@@ -1,0 +1,7 @@
+#!/usr/bin/env -S python3 -I
+"""Run the trusted checkout adapter without importing target directories."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from olc.ci import main
+sys.exit(main())

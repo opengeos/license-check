@@ -48,6 +48,17 @@ def _check_artifact(art, i):
     for key in ("path", "filename", "class"):
         if not isinstance(art.get(key), str) or not art[key]:
             raise InputError(f"artifact {i}: {key} must be a non-empty string")
+    expected = art.get("expected_digest")
+    if expected is not None:
+        if art.get("published_digest") is not None or art.get("authority") != {"kind": "ci-artifact"}:
+            raise InputError("CI digest requires explicit ci-artifact authority and no published digest")
+        if not isinstance(expected, dict) or set(expected) != {"alg", "value"} \
+                or expected.get("alg") != "sha256" or not isinstance(expected.get("value"), str) \
+                or len(expected["value"]) != 64 \
+                or any(c not in "0123456789abcdef" for c in expected["value"]):
+            raise InputError("CI expected digest must be lowercase sha256 hex")
+    elif art.get("authority") is not None:
+        raise InputError("authority requires an expected digest")
     pd = art.get("published_digest")
     if pd is not None:
         if not isinstance(pd, dict) or pd.get("alg") not in ("sha256", "sha512") \
@@ -87,7 +98,9 @@ def _identity(art, limits):
     """The artifact's output record, and the problems that block or qualify examination."""
     rec = {"filename": art["filename"], "class": art["class"], "path": art["path"],
            "size": None, "declared_size": art.get("size"), "sha256": None,
-           "published_digest": art.get("published_digest"), "digest_match": None,
+           "published_digest": art.get("published_digest"),
+           "expected_digest": art.get("expected_digest"), "authority": art.get("authority"),
+           "digest_match": None,
            "examined": False, "problems": []}
     path = Path(art["path"])
     if not path.is_file():
@@ -100,7 +113,7 @@ def _identity(art, limits):
         return rec, "artifact-too-large", [f"over {limits['max_artifact_bytes']} bytes"]
     size, h256, h512 = hashed
     rec["size"], rec["sha256"] = size, h256.hexdigest()
-    pd = art.get("published_digest")
+    pd = art.get("published_digest") or art.get("expected_digest")
     qualifiers = []
     if pd is None:
         qualifiers.append("no-published-digest")
@@ -111,7 +124,7 @@ def _identity(art, limits):
         expected = _expected_bytes(pd)
         rec["digest_match"] = expected == actual
         if not rec["digest_match"]:
-            return rec, "digest-mismatch", [f"{pd['alg']} differs from published value"]
+            return rec, "digest-mismatch", [f"{pd['alg']} differs from expected value"]
     if art.get("size") is not None and art["size"] != size:
         qualifiers.append("size-mismatch")
     return rec, None, qualifiers
@@ -158,7 +171,9 @@ def inspect_artifacts(artifacts, rules, policy=None, limits=None, *, target=None
         for c in applicable:
             _guarded(c, c.end, summary)
         rec["examined"] = True
-        rec["archive"] = {"format": summary.format, "problem": summary.problem}
+        rec["archive"] = {"format": summary.format, "problem": summary.problem,
+                          "nested_archives": summary.nested_archives[:result.LIST_CAP],
+                          "nested_archives_count": len(summary.nested_archives)}
         if summary.problem:
             rec["problems"].append(f"archive-{summary.problem}")
             coverage["unexamined"].append({"artifact": art["filename"], "member": "*",

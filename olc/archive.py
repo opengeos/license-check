@@ -9,6 +9,8 @@ silently.
 
 import gzip
 import hashlib
+import io
+from contextlib import contextmanager
 import stat
 import struct
 import tarfile
@@ -29,6 +31,7 @@ DEFAULT_LIMITS = {
     "max_name_records": 1_000,
     "max_ttc_fonts": 16,
     "max_font_tables": 64,
+    "max_nested_depth": 2,
 }
 CHUNK = 1 * MiB
 HEAD = 64
@@ -36,8 +39,8 @@ HEAD = 64
 MAX_HEADER_BYTES = 64 * MiB
 
 NESTED_SUFFIXES = (".zip", ".whl", ".jar", ".tar", ".tgz", ".gz", ".bz2", ".xz", ".zst",
-                   ".egg", ".nupkg", ".7z", ".rar")
-NESTED_MAGIC = (b"PK\x03\x04", b"\x1f\x8b", b"BZh", b"\xfd7zXZ\x00", b"\x28\xb5\x2f\xfd",
+                   ".egg", ".nupkg", ".7z", ".rar", ".kmz")
+NESTED_MAGIC = (b"PK\x03\x04", b"PK\x05\x06", b"\x1f\x8b", b"BZh", b"\xfd7zXZ\x00", b"\x28\xb5\x2f\xfd",
                 b"7z\xbc\xaf\x27\x1c", b"Rar!")
 
 
@@ -47,7 +50,7 @@ def make_limits(overrides=None):
     for key, value in (overrides or {}).items():
         if key not in DEFAULT_LIMITS:
             raise InputError(f"unknown limit {key}")
-        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        if not isinstance(value, int) or isinstance(value, bool) or value < (0 if key == "max_nested_depth" else 1):
             raise InputError(f"limit {key} must be a positive integer")
         if value > DEFAULT_LIMITS[key]:
             raise InputError(f"limit {key} can only be lowered (default {DEFAULT_LIMITS[key]})")
@@ -80,6 +83,7 @@ class Summary:
     problem: str | None = None                        # archive-level: no member list is complete
     problem_detail: str | None = None
     bytes_streamed: int = 0
+    nested_archives: list = field(default_factory=list)
 
 
 class Visitor:
@@ -129,8 +133,18 @@ def is_nested_archive(name, head):
     return head.startswith(NESTED_MAGIC)
 
 
+@contextmanager
+def _open_source(source):
+    if isinstance(source, bytes):
+        with io.BytesIO(source) as stream:
+            yield stream
+    else:
+        with open(source, "rb") as stream:
+            yield stream
+
+
 def sniff_format(path):
-    with open(path, "rb") as f:
+    with _open_source(path) as f:
         magic = f.read(4)
     if magic in (b"PK\x03\x04", b"PK\x05\x06"):
         return "zip"
@@ -160,9 +174,13 @@ def read_archive(path, visitor, limits):
 
 
 class _State:
-    def __init__(self, summary, visitor, limits):
+    def __init__(self, summary, visitor, limits, prefix="", depth=0, seen=None):
         self.summary, self.visitor, self.limits = summary, visitor, limits
-        self.seen = {}
+        self.prefix, self.depth = prefix, depth
+        self.seen = {} if seen is None else seen
+
+    def name(self, raw):
+        return self.prefix + raw
 
     def count_member(self, name):
         self.summary.members_total += 1
@@ -201,7 +219,8 @@ class _State:
             if keep is None:
                 member.head = chunk[:HEAD]
                 bad = member.unexamined
-                keep = not bad and self.visitor.wants_content(member.name, member.head)
+                keep = not bad and (self.visitor.wants_content(member.name, member.head)
+                                    or is_nested_archive(member.name, member.head))
                 member.streams = [] if bad else list(self.visitor.streams(member.name))
                 buf = bytearray() if keep else None
             for s in member.streams:
@@ -224,10 +243,43 @@ class _State:
         if member.unexamined:
             return
         if is_nested_archive(member.name, member.head):
-            self.unexamined(member, "nested-archive")
+            self.nested(member)
             return
         self.summary.members_examined += 1
         self.visitor.member(member)
+
+
+    def nested(self, member):
+        if self.depth >= self.limits["max_nested_depth"]:
+            self.unexamined(member, "nested-depth-limit")
+            return
+        if member.content is None:
+            self.unexamined(member, "nested-over-content-cap")
+            return
+        fmt = sniff_format(member.content)
+        if fmt not in {"zip", "tar.gz"}:
+            self.unexamined(member, "nested-unsupported-archive")
+            return
+        before = self.summary.members_total
+        nested = _State(self.summary, self.visitor, self.limits,
+                        member.name + "!/", self.depth + 1, self.seen)
+        try:
+            if fmt == "zip":
+                _read_zip(member.content, nested)
+            else:
+                _read_tar(member.content, nested)
+        except _Stop:
+            raise  # shared depth, byte, and member budgets cover the whole artifact
+        except (OSError, EOFError, zlib.error, zipfile.BadZipFile, tarfile.TarError,
+                gzip.BadGzipFile, struct.error, ValueError, NotImplementedError):
+            self.unexamined(member, "nested-archive-unreadable")
+            return
+        self.summary.members_examined += 1
+        self.summary.nested_archives.append({
+            "member": member.name, "format": fmt, "depth": self.depth + 1,
+            "sha256": member.sha256,
+            "members": self.summary.members_total - before,
+        })
 
 
 # --- ZIP ---------------------------------------------------------------------------------
@@ -235,7 +287,7 @@ class _State:
 def _zip_entry_count(path):
     """Entry count from the end-of-central-directory record, read before zipfile parses the
     whole directory (which it keeps in memory)."""
-    with open(path, "rb") as f:
+    with _open_source(path) as f:
         f.seek(0, 2)
         size = f.tell()
         f.seek(max(0, size - 65_557))
@@ -247,7 +299,7 @@ def _zip_entry_count(path):
     loc = tail.rfind(b"PK\x06\x07", 0, pos)
     if count == 0xFFFF and loc >= 0 and loc + 20 <= len(tail):
         offset = struct.unpack_from("<Q", tail, loc + 8)[0]
-        with open(path, "rb") as f:
+        with _open_source(path) as f:
             f.seek(offset)
             rec = f.read(56)
         if rec[:4] == b"PK\x06\x06" and len(rec) == 56:
@@ -259,9 +311,10 @@ def _read_zip(path, state):
     count = _zip_entry_count(path)
     if count is not None and count > state.limits["max_members"]:
         raise _Stop("member-limit", f"{count} entries declared")
-    with zipfile.ZipFile(path) as zf:
+    with _open_source(path) as source, zipfile.ZipFile(source) as zf:
         for info in zf.infolist():
-            name = info.filename
+            raw_name = info.filename
+            name = state.name(raw_name)
             if info.is_dir():
                 continue
             state.count_member(name)
@@ -276,7 +329,7 @@ def _read_zip(path, state):
             if info.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
                 state.unexamined(member, f"compression-{info.compress_type}")
                 continue
-            bad = bad_path(name)
+            bad = bad_path(raw_name)
             if bad:
                 state.unexamined(member, f"bad-path:{bad}")
             try:
@@ -323,13 +376,14 @@ _TAR_KINDS = (
 
 
 def _read_tar(path, state):
-    with open(path, "rb") as raw, gzip.GzipFile(fileobj=raw, mode="rb") as gz:
+    with _open_source(path) as raw, gzip.GzipFile(fileobj=raw, mode="rb") as gz:
         reader = _CountingReader(gz, state)
         with tarfile.open(fileobj=reader, mode="r|") as tf:
             for ti in tf:
                 if ti.isdir():
                     continue
-                name = ti.name
+                raw_name = ti.name
+                name = state.name(raw_name)
                 state.count_member(name)
                 kind = next((k for attr, k in _TAR_KINDS if getattr(ti, attr)()), None)
                 if kind:
@@ -341,7 +395,7 @@ def _read_tar(path, state):
                     continue
                 if ti.issparse():
                     state.unexamined(member, "sparse")
-                bad = bad_path(name)
+                bad = bad_path(raw_name)
                 if bad:
                     state.unexamined(member, f"bad-path:{bad}")
                 fh = tf.extractfile(ti)

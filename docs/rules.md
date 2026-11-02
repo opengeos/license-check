@@ -36,7 +36,7 @@ Reasons every rule can give:
 | `no-published-digest` | incomplete | examined, but identity is not established |
 | `size-mismatch` | incomplete | actual size differs from the declared size |
 | `archive-<problem>` | incomplete | `unsupported-archive`, `archive-unreadable`, `member-limit`, `total-limit`, `oversized-header`: the member list is incomplete, so no absence-based conclusion is drawn |
-| `unexamined-in-scope` | incomplete | a member the rule depends on was not read (`detail` says why: `nested-archive`, `too-large`, `encrypted`, `compression-N`, `sparse`, `bad-path:*`, `read-error:*`) |
+| `unexamined-in-scope` | incomplete | a member the rule depends on was not read (`detail` says why: `nested-depth-limit`, `nested-over-content-cap`, `nested-unsupported-archive`, `nested-archive-unreadable`, `too-large`, `encrypted`, `compression-N`, `sparse`, `bad-path:*`, `read-error:*`) |
 | `duplicate-member` | review | two member names collide after NFC normalization and case folding |
 | `rule-error` | incomplete | the rule raised on this member (`detail` is the exception type); report it as a checker bug |
 

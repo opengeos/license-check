@@ -107,7 +107,13 @@ gives `review: no-policy`. `olc.policy.load_policy(path_or_dict)` validates;
 `None` or a dict that may only **lower** the defaults (`olc.archive.DEFAULT_LIMITS`); raising one
 is an `InputError`. Keys: `max_artifact_bytes` (300 MB), `max_members` (50 000),
 `max_member_bytes` (512 MiB), `max_total_bytes` (4 GiB), `content_cap` (16 MiB),
-`max_name_records` (1 000), `max_ttc_fonts` (16), `max_font_tables` (64).
+`max_name_records` (1 000), `max_ttc_fonts` (16), `max_font_tables` (64),
+`max_nested_depth` (2; zero disables nested inspection).
+
+Nested ZIP/KMZ and gzip-tar members are inspected in memory under the same member
+and expanded-byte budgets as their parent. Their virtual names use `parent.zip!/child`.
+Each nested archive is capped by `content_cap` before opening; unsupported formats,
+corrupt members, and depth limits remain explicit incomplete coverage.
 
 ### `target`, `engine_rev`
 
@@ -278,3 +284,14 @@ python3 -I bin/olc download <url> <destination-dir>
 relative `path`s are resolved against A.json's directory. `inspect` refuses to run (exit 4) when the
 working directory is the directory of any artifact. `--policy` defaults to the bundled
 `policy/policy.json`. Exit codes as above.
+
+## Unpublished CI artifact identity
+
+An artifact may instead supply `expected_digest: {"alg":"sha256","value":"<64 lowercase hex>"}`
+and `authority: {"kind":"ci-artifact"}` together, with no `published_digest`. This checks bytes
+against the build manifest, and suppresses only `no-published-digest`; a mismatch still blocks
+inspection as `incomplete: digest-mismatch`. Both fields are retained in the output record.
+This authority proves neither registry publication, provenance nor publisher identity. Registry
+callers continue to use `published_digest`; callers must not use CI authority for registry
+verification or correction decisions. The CI adapter permits no manifest-supplied policy,
+exceptions, registry identity or output paths.
